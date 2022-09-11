@@ -1,0 +1,51 @@
+name: 401 backend server CI
+
+on:
+  push:
+    branches: ['develop']
+  pull_request:
+    branches: ['develop']
+jobs:
+  # label of the container job 
+  postgres:
+    runs-on: ubuntu-latest
+    container: node:latest
+
+    services:
+      postgres:
+        image: postgres
+        # `POSTGRES_HOST` is `postgres`
+        env:
+          POSTGRES_DB: csci401_test
+          POSTGRES_PASSWORD: password
+          # optional (defaults to `5432`)
+          POSTGRES_PORT: 5432
+          # optional (defaults to `postgres`)
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env: 
+      NODE_ENV: test
+      POSTGRES_HOST: postgres
+    steps:
+      # Downloads a copy of the code in your repository before running CI tests
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Disable husky preparation
+        run: npm set-script prepare ''
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        run: npm test
+        env:
+          CI: true
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          PGADMIN_DEFAULT_EMAIL: admin@csci401.com
+          PGADMIN_DEFAULT_PASSWORD: password

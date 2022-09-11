@@ -1,0 +1,4 @@
+{
+  "testRegex": "((\\.|/*.)(test))\\.ts?$",
+  "testTimeout": 2000000
+}

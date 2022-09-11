@@ -1,0 +1,27 @@
+version: '3'
+services:
+  postgres:
+    container_name: pgDockerCSCI401
+    image: postgres:latest
+    environment:
+      - POSTGRES_USERNAME
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+      - POSTGRES_TEST_DB
+    ports:
+      - 5432:5432
+    volumes:
+      - ./data/:/var/lib/postgresql/data
+      - ./create_test_db.sh:/docker-entrypoint-initdb.d/create_test_db.sh
+  pgadmin:
+    container_name: pgadminDockerCSCI401
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL
+      - PGADMIN_DEFAULT_PASSWORD
+    ports:
+      - 5556:80
+    depends_on:
+      - postgres
+    volumes:
+      - ./setup/servers.json:/pgadmin4/servers.json
