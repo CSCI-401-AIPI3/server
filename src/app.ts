@@ -7,6 +7,11 @@ import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import session from 'express-session';
 import passport from 'passport';
+import { DataTypes } from 'sequelize';
+import { IQuestion, QuestionFunction } from './models/questions';
+import sequelize from './db/db';
+
+const Question = QuestionFunction(sequelize, DataTypes);
 
 // Initializing express
 const app: Application = express();
@@ -38,21 +43,26 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).send();
 });
 
-const isAuthenticated = (req: Request, res: Response, next: any) => {
-  if (req.user) return next();
-  return res.status(401).json({
-    success: false,
-    message: 'User not authenticated',
-  });
-};
+// const isAuthenticated = (req: Request, res: Response, next: any) => {
+//   if (req.user) return next();
+//   return res.status(401).json({
+//     success: false,
+//     message: 'User not authenticated',
+//   });
+// };
 
-app.use(isAuthenticated);
+// app.use(isAuthenticated);
 
 app.get('/', (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     message: 'User authenticated',
   });
+});
+
+app.get('/questions', async (req: Request, res: Response) => {
+  const questions = await Question.findAll({}) as IQuestion[];
+  res.status(200).json(questions);
 });
 
 export default app;
