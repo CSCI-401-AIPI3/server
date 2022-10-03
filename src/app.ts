@@ -1,7 +1,5 @@
 /* eslint-disable camelcase */
-import express, {
-  Application, Request, Response,
-} from 'express';
+import express, { Application, Request, Response } from 'express';
 // import { DataTypes } from 'sequelize';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
@@ -10,11 +8,14 @@ import passport from 'passport';
 import { DataTypes } from 'sequelize';
 import { IQuestion, QuestionFunction } from './models/questions';
 import sequelize from './db/db';
+import cors from 'cors';
 
 const Question = QuestionFunction(sequelize, DataTypes);
 
 // Initializing express
 const app: Application = express();
+
+app.use(cors());
 
 /**
  // Express Middleware
@@ -23,8 +24,15 @@ app.use(morgan('dev'));
 app.options('/*', (_, res) => {
   res.sendStatus(200);
 });
-const sessionConfig : any = {
-  secret: 'keyboard cat', cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 * 10000, sameSite: process.env.NODE_ENV === 'prod' ? 'none' : 'strict' }, rolling: true, resave: false, saveUninitialized: true,
+const sessionConfig: any = {
+  secret: 'keyboard cat',
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 * 7 * 10000,
+    sameSite: process.env.NODE_ENV === 'prod' ? 'none' : 'strict',
+  },
+  rolling: true,
+  resave: false,
+  saveUninitialized: true,
 };
 if (process.env.NODE_ENV === 'prod') {
   app.set('trust proxy', 1); // trust first proxy
@@ -61,7 +69,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.get('/questions', async (req: Request, res: Response) => {
-  const questions = await Question.findAll({}) as IQuestion[];
+  const questions = (await Question.findAll({})) as IQuestion[];
   res.status(200).json(questions);
 });
 
