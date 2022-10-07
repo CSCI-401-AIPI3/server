@@ -1,29 +1,33 @@
 import { Sequelize, Model } from 'sequelize';
 
 export interface IUserAnswer {
-    userAnswerID: number;
-    userID: number;
-    answerList: string[];
+  questionID: number;
+  userID: number;
+  answerList: string[];
 }
 
-const UserAnswerFunction = function (sequelize: Sequelize, DataTypes: any): any {
+const UserAnswerFunction = function (
+  sequelize: Sequelize,
+  DataTypes: any
+): any {
   class UserAnswer extends Model implements IUserAnswer {
-    declare userAnswerID: number;
+    declare questionID: number;
 
     declare userID: number;
 
     declare answerList: string[];
   }
+  // note: specifying true for 2+ cols being primary key creates a composite key
   UserAnswer.init(
     {
-      userAnswerID: {
+      questionID: {
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
         type: DataTypes.INTEGER,
       },
       userID: {
         allowNull: false,
+        primaryKey: true,
         type: DataTypes.INTEGER,
       },
       answerList: {
@@ -36,7 +40,7 @@ const UserAnswerFunction = function (sequelize: Sequelize, DataTypes: any): any 
       sequelize,
       modelName: 'UserAnswer',
       timestamps: true,
-    },
+    }
   );
   return UserAnswer;
 };
