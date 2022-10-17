@@ -10,12 +10,15 @@ export interface IIndustryAverage {
 
 const IndustryAverageFunction = function (
   sequelize: Sequelize,
-  DataTypes: any
+  DataTypes: any,
 ): any {
   class IndustryAverage extends Model implements IIndustryAverage {
     declare industryAverageID: number;
+
     declare category: Category;
+
     declare score: number;
+
     declare entries: number;
   }
   IndustryAverage.init(
@@ -41,9 +44,9 @@ const IndustryAverageFunction = function (
     },
     {
       sequelize,
-      modelName: 'UserResult',
+      modelName: 'IndustryAverage',
       timestamps: true,
-    }
+    },
   );
   return IndustryAverage;
 };

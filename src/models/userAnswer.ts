@@ -8,7 +8,7 @@ export interface IUserAnswer {
 
 const UserAnswerFunction = function (
   sequelize: Sequelize,
-  DataTypes: any
+  DataTypes: any,
 ): any {
   class UserAnswer extends Model implements IUserAnswer {
     declare questionID: number;
@@ -20,9 +20,14 @@ const UserAnswerFunction = function (
   // note: specifying true for 2+ cols being primary key creates a composite key
   UserAnswer.init(
     {
+      userAnswerID: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: DataTypes.INTEGER,
+      },
       questionID: {
         allowNull: false,
-        primaryKey: true,
         type: DataTypes.INTEGER,
       },
       userID: {
@@ -40,7 +45,7 @@ const UserAnswerFunction = function (
       sequelize,
       modelName: 'UserAnswer',
       timestamps: true,
-    }
+    },
   );
   return UserAnswer;
 };

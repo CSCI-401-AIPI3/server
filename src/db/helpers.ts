@@ -6,13 +6,23 @@ import sequelize from './db';
 import { UserFunction } from '../models/user';
 import { QuestionFunction } from '../../src/models/questions';
 import { UserAnswerFunction } from '../../src/models/userAnswer';
+import { IndustryAverageFunction } from '../../src/models/industryAverages';
+import { UserResultFunction } from '../../src/models/userResults';
 
 const User = UserFunction(sequelize, DataTypes);
 const Question = QuestionFunction(sequelize, DataTypes);
 const Answer = UserAnswerFunction(sequelize, DataTypes);
+const IndustryAverage = IndustryAverageFunction(sequelize, DataTypes);
+const UserResult = UserResultFunction(sequelize, DataTypes);
+
+const email = 'rzhang139@gmail.com';
 
 async function clearDatabase() {
   await User.destroy({ where: {} });
+  await Question.destroy({ where: {} });
+  await Answer.destroy({ where: {} });
+  await IndustryAverage.destroy({ where: {} });
+  await UserResult.destroy({ where: {} });
 }
 
 async function initDatabase() {
@@ -21,7 +31,7 @@ async function initDatabase() {
   await User.create({
     name: 'richard',
     company: 'Amazon',
-    email: 'rzhang139@gmail.com',
+    email,
     technicalMaturity: TechMaturity.INITIAL,
     pointOfContact: 'adam',
   });
@@ -35,11 +45,25 @@ async function initDatabase() {
   });
 
   await Answer.create({
+    questionID: 1,
     userID: 1,
     answerList: ['yes'],
+  });
+
+  await IndustryAverage.create({
+    category: Category.DATABASE,
+    score: 1,
+    entries: 2,
+  });
+
+  await UserResult.create({
+    userID: 1,
+    score: 1,
+    category: Category.DATABASE,
+    timestamp: 30,
   });
 }
 
 export {
-  clearDatabase, initDatabase,
+  clearDatabase, initDatabase, email,
 };

@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable camelcase */
 import express, { Application, Request, Response } from 'express';
 // import { DataTypes } from 'sequelize';
@@ -6,16 +7,16 @@ import morgan from 'morgan';
 import session from 'express-session';
 import passport from 'passport';
 import { DataTypes } from 'sequelize';
+import cors from 'cors';
 import { IQuestion, QuestionFunction } from './models/questions';
 import {
   IIndustryAverage,
   IndustryAverageFunction,
 } from './models/industryAverages';
-import { IUser, UserFunction } from './models/user';
+import { UserFunction } from './models/user';
 import { IUserAnswer, UserAnswerFunction } from './models/userAnswer';
 import { IUserResult, UserResultFunction } from './models/userResults';
 import sequelize from './db/db';
-import cors from 'cors';
 import { TechMaturity, AnswerType } from '../utils/enum';
 
 const Question = QuestionFunction(sequelize, DataTypes);
@@ -23,6 +24,8 @@ const IndustryAverage = IndustryAverageFunction(sequelize, DataTypes);
 const User = UserFunction(sequelize, DataTypes);
 const UserAnswer = UserAnswerFunction(sequelize, DataTypes);
 const UserResult = UserResultFunction(sequelize, DataTypes);
+require('babel-core/register');
+require('babel-polyfill');
 
 // Initializing express
 const app: Application = express();
@@ -85,10 +88,10 @@ app.get('/questions', async (req: Request, res: Response) => {
   res.status(200).json(questions);
 });
 
-app.post('/getUserAnswers', async (req: Request, res: Response) => {
+app.get('/getUserAnswers', async (req: Request, res: Response) => {
   const answers = (await UserAnswer.findAll({
     where: {
-      userID: req.body.userId,
+      userID: req.query.userID,
     },
   })) as IUserAnswer[];
   res.status(200).json(answers);
@@ -98,7 +101,7 @@ app.post('/submitUserAnswers', async (req: Request, res: Response) => {
   const userAnswers = req.body.userAnswers;
   const user = req.body.userId;
   const timestamp = Date.now();
-  let answerScores = {
+  const answerScores = {
     DATABASE: 0,
     DATA_ANALYTICS: 0,
     SECURITY: 0,
@@ -123,19 +126,19 @@ app.post('/submitUserAnswers', async (req: Request, res: Response) => {
       },
     });
     let questionScore;
-    if (elementQuestion.answerType == AnswerType.SC) {
+    if (elementQuestion.answerType === AnswerType.SC) {
       const numAnswers = elementQuestion.answerOptionsList.length;
       const answerPosition = elementQuestion.answerOptionsList.indexOf(
-        element.answerList[0]
+        element.answerList[0],
       );
       questionScore = 1 - answerPosition / numAnswers;
-      answerScores[elementQuestion.category] +=
-        questionScore * elementQuestion.weight;
-    } else if (elementQuestion.answerType == AnswerType.MC) {
+      answerScores[elementQuestion.category]
+        += questionScore * elementQuestion.weight;
+    } else if (elementQuestion.answerType === AnswerType.MC) {
       const numAnswers = elementQuestion.answerOptionsList.length;
       questionScore = element.answerList.length / numAnswers;
-      answerScores[elementQuestion.category] +=
-        questionScore * elementQuestion.weight;
+      answerScores[elementQuestion.category]
+        += questionScore * elementQuestion.weight;
     }
   });
 
@@ -143,7 +146,7 @@ app.post('/submitUserAnswers', async (req: Request, res: Response) => {
   const visibleQuestions = (await Question.findAll({
     where: { visible: true },
   })) as IQuestion[];
-  let totalScoresPossible = {
+  const totalScoresPossible = {
     DATABASE: 0,
     DATA_ANALYTICS: 0,
     SECURITY: 0,
@@ -163,7 +166,7 @@ app.post('/submitUserAnswers', async (req: Request, res: Response) => {
       userID: user,
       category: key,
       score: answerScores[key] / totalScoresPossible[key],
-      timestamp: timestamp,
+      timestamp,
     });
   });
 
@@ -172,7 +175,9 @@ app.post('/submitUserAnswers', async (req: Request, res: Response) => {
 
 class FS {
   category: string;
+
   score: number;
+
   constructor(cat: string, sc: number) {
     this.category = cat;
     this.score = sc;
@@ -183,7 +188,7 @@ app.get('/getUserScores', async (req: Request, res: Response) => {
   // find results at that timestamp
   const historyOfUserResults = (await UserResult.findAll({
     where: {
-      userID: req.body.userId,
+      userID: req.query.userId,
     },
   })) as IUserResult[];
   res.status(200).json(historyOfUserResults);
@@ -228,7 +233,7 @@ app.post('/updateQuestionVisibility', async (req: Request, res: Response) => {
       where: {
         questionId: req.body.questionID,
       },
-    }
+    },
   );
   res.status(200);
 });
@@ -247,16 +252,16 @@ app.post('/updateIndustryAverages', async (req: Request, res: Response) => {
     await IndustryAverage.update(
       {
         score:
-          (element.score * element.entries +
-            req.body.scores[element.category]) /
-          (element.entries + 1),
+          (element.score * element.entries
+            + req.body.scores[element.category])
+          / (element.entries + 1),
         entries: element.entries + 1,
       },
       {
         where: {
           industryAverageID: element.industryAverageID,
         },
-      }
+      },
     );
   });
 
