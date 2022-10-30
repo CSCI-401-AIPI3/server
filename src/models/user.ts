@@ -1,29 +1,35 @@
 import { Sequelize, Model } from 'sequelize';
 import { TechMaturity } from '../../utils/enum';
 
+const bcrypt = require('bcrypt-nodejs');
+
 export interface IUser {
     userID: number;
-    name: string;
-    company: string;
+    name?: string;
+    company?: string;
     email: string;
-    technicalMaturity: TechMaturity;
-    pointOfContact: string;
-
+    password: string;
+    technicalMaturity?: TechMaturity;
+    pointOfContact?: string;
+    validPassword: any;
+    generateHash: any;
 }
 
 const UserFunction = function (sequelize: Sequelize, DataTypes: any): any {
   class User extends Model implements IUser {
     declare userID: number;
 
-    declare name: string;
-
-    declare company: string;
-
     declare email: string;
 
-    declare technicalMaturity: TechMaturity;
+    declare password: string;
 
-    declare pointOfContact: string;
+    validPassword(password: string) {
+      return bcrypt.compareSync(password, this.password);
+    }
+
+    generateHash(password: string) {
+      return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+    }
   }
   User.init(
     {
@@ -34,23 +40,23 @@ const UserFunction = function (sequelize: Sequelize, DataTypes: any): any {
         type: DataTypes.INTEGER,
       },
       name: {
-        allowNull: false,
         type: DataTypes.STRING,
       },
       company: {
-        allowNull: false,
         type: DataTypes.STRING,
       },
       email: {
         allowNull: false,
         type: DataTypes.STRING,
       },
-      technicalMaturity: {
+      password: {
         allowNull: false,
         type: DataTypes.STRING,
       },
+      technicalMaturity: {
+        type: DataTypes.STRING,
+      },
       pointOfContact: {
-        allowNull: false,
         type: DataTypes.STRING,
       },
     },

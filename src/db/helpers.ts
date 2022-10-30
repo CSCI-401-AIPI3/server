@@ -32,6 +32,7 @@ async function initDatabase() {
     name: 'richard',
     company: 'Amazon',
     email,
+    password: '$2a$08$5nZvEem1PqgiT1xW6sk2uu7IhT1IbbgArxk0PSjeFI7FOmFL.oV2S',
     technicalMaturity: TechMaturity.INITIAL,
     pointOfContact: 'adam',
   });

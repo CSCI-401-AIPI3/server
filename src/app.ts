@@ -6,14 +6,16 @@ import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import session from 'express-session';
 import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
 import { DataTypes } from 'sequelize';
 import cors from 'cors';
+import { body, check, validationResult } from 'express-validator';
 import { IQuestion, QuestionFunction } from './models/questions';
 import {
   IIndustryAverage,
   IndustryAverageFunction,
 } from './models/industryAverages';
-import { UserFunction } from './models/user';
+import { IUser, UserFunction } from './models/user';
 import { IUserAnswer, UserAnswerFunction } from './models/userAnswer';
 import { IUserResult, UserResultFunction } from './models/userResults';
 import sequelize from './db/db';
@@ -66,15 +68,147 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).send();
 });
 
-// const isAuthenticated = (req: Request, res: Response, next: any) => {
-//   if (req.user) return next();
-//   return res.status(401).json({
-//     success: false,
-//     message: 'User not authenticated',
-//   });
-// };
+passport.use(
+  'local-login',
+  new LocalStrategy(
+    {
+      // by default, local strategy uses username and password, we will override with email
 
-// app.use(isAuthenticated);
+      usernameField: 'email',
+
+      passwordField: 'password',
+
+      passReqToCallback: true, // allows us to pass back the entire request to the callback
+    },
+    async (req, email, password, done) => {
+      try {
+        console.log(email);
+        const user = await User.findOne({ where: { email } }) as IUser;
+        console.log(user);
+        if (!user) {
+          return done(null, false, { message: 'Incorrect email.' });
+        }
+        const passVal = user.validPassword(password); console.log('hello');
+        if (!passVal) {
+          return done(null, false, { message: 'Incorrect password.' });
+        }
+        console.log('hello');
+        return done(null, user, { message: 'Login Successful.' });
+      } catch (err) {
+        console.log('err');
+        return done(err);
+      }
+    },
+  ),
+);
+
+passport.serializeUser((user: IUser, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((user: IUser, done) => {
+  // eslint-disable-next-line no-shadow
+  User.findByPk(user.userID).then((user: any) => {
+    done(null, user);
+  });
+});
+
+/**
+ * Sign in using email and password.
+ * @route POST /login
+ * @params email, password
+ */
+app.post('/login', async (req: Request, res: Response, next: any) => {
+  // const { email } = req.body;
+  console.log('hello');
+  await check('email', 'Email is not valid').isEmail().run(req);
+  await check('password', 'Password cannot be blank').isLength({ min: 1 }).run(req);
+  await body('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
+  const errors = validationResult(req);
+
+  try {
+    if (!errors.isEmpty()) {
+      const message = errors['errors'][0].msg;
+      throw new Error(message);
+    }
+    console.log('hello');
+    passport.authenticate('local-login', async (err: Error, user: IUser, message: Object) => {
+      if (err) {
+        return res.status(401).json(message);
+      }
+      if (!user) {
+        return res.status(401).json(message);
+      }
+      console.log('hello');
+      req.logIn(user, async (_err) => {
+        if (_err) { return res.status(401).json({ message: 'Error Loggin In' }); }
+        res.status(200).send({ message: 'Login Successfully' });
+      });
+    })(req, res, next);
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send({ message: err.message });
+  }
+});
+
+/**
+ * Sign up using email and password.
+ * @route POST /register
+ * @params email, password
+ */
+app.post('/register', async (req: Request, res: Response) => {
+  await check('email', 'Email is not valid').isEmail().run(req);
+  await check('password', 'Password must be at least 8 characters long').isLength({ min: 8 }).run(req);
+  await body('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
+  const errors = validationResult(req);
+
+  const {
+    email, password,
+  } = req.body;
+  try {
+    if (!errors.isEmpty()) {
+      const message = errors['errors'][0].msg;
+      throw new Error(message);
+    }
+    let user = await User.findOne({ where: { email } }) as IUser;
+    // check to see if theres already a user with that email
+    if (user) {
+      throw new Error('Email Exists');
+    }
+    // insert a new user!!! Registration is DONE
+    user = await User.create({
+      email,
+      password,
+    });
+    // Log In !
+    req.logIn(user, async (err) => {
+      if (err) return res.status(400).json({ message: 'Error Logging In' });
+      return res.status(200).json({ message: 'Register Successful.' });
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send({ message: err.message });
+  }
+});
+
+/**
+ * Logout
+ * @route POST /logout
+ */
+app.post('/logout', (req: Request, res: Response) => {
+  req.logout();
+  res.status(200).send({ message: 'Logged out' });
+});
+
+const isAuthenticated = (req: Request, res: Response, next: any) => {
+  if (req.user) return next();
+  return res.status(401).json({
+    success: false,
+    message: 'User not authenticated',
+  });
+};
+
+app.use(isAuthenticated);
 
 app.get('/', (req: Request, res: Response) => {
   res.status(200).json({
