@@ -21,9 +21,10 @@ Create an .env file with the necessary variables.
 
 ## Database Population Through Running
 
-Simply running `npm start` with `NODE_ENV=dev` set will set up the database according to `initDatabase()` function in the `sr/cdb/helpers.ts` file.
+Simply running `npm start` with `NODE_ENV=dev` set will set up the database according to `initDatabase()` function in the `src/db/helpers.ts` file.
 
 If you make changes to the database structure or data (ie. changing columns, tables, etc.) you will need to rebuild the database:
+
 ```bash
 # stop the docker-compose environment if not done
 sudo rm -rf data/

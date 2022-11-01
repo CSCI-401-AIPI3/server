@@ -32,7 +32,8 @@ require('babel-polyfill');
 // Initializing express
 const app: Application = express();
 
-app.use(cors());
+// app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
 /**
  // Express Middleware
@@ -83,23 +84,22 @@ passport.use(
     async (req, email, password, done) => {
       try {
         console.log(email);
-        const user = await User.findOne({ where: { email } }) as IUser;
+        const user = (await User.findOne({ where: { email } })) as IUser;
         console.log(user);
         if (!user) {
           return done(null, false, { message: 'Incorrect email.' });
         }
-        const passVal = user.validPassword(password); console.log('hello');
+        const passVal = user.validPassword(password);
         if (!passVal) {
           return done(null, false, { message: 'Incorrect password.' });
         }
-        console.log('hello');
         return done(null, user, { message: 'Login Successful.' });
       } catch (err) {
         console.log('err');
         return done(err);
       }
-    },
-  ),
+    }
+  )
 );
 
 passport.serializeUser((user: IUser, done) => {
@@ -120,9 +120,10 @@ passport.deserializeUser((user: IUser, done) => {
  */
 app.post('/login', async (req: Request, res: Response, next: any) => {
   // const { email } = req.body;
-  console.log('hello');
   await check('email', 'Email is not valid').isEmail().run(req);
-  await check('password', 'Password cannot be blank').isLength({ min: 1 }).run(req);
+  await check('password', 'Password cannot be blank')
+    .isLength({ min: 1 })
+    .run(req);
   await body('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
   const errors = validationResult(req);
 
@@ -131,20 +132,23 @@ app.post('/login', async (req: Request, res: Response, next: any) => {
       const message = errors['errors'][0].msg;
       throw new Error(message);
     }
-    console.log('hello');
-    passport.authenticate('local-login', async (err: Error, user: IUser, message: Object) => {
-      if (err) {
-        return res.status(401).json(message);
+    passport.authenticate(
+      'local-login',
+      async (err: Error, user: IUser, message: Object) => {
+        if (err) {
+          return res.status(401).json(message);
+        }
+        if (!user) {
+          return res.status(401).json(message);
+        }
+        req.logIn(user, async (_err) => {
+          if (_err) {
+            return res.status(401).json({ message: 'Error Loggin In' });
+          }
+          res.status(200).send({ message: 'Login Successfully' });
+        });
       }
-      if (!user) {
-        return res.status(401).json(message);
-      }
-      console.log('hello');
-      req.logIn(user, async (_err) => {
-        if (_err) { return res.status(401).json({ message: 'Error Loggin In' }); }
-        res.status(200).send({ message: 'Login Successfully' });
-      });
-    })(req, res, next);
+    )(req, res, next);
   } catch (err) {
     console.log(err);
     return res.status(400).send({ message: err.message });
@@ -158,19 +162,19 @@ app.post('/login', async (req: Request, res: Response, next: any) => {
  */
 app.post('/register', async (req: Request, res: Response) => {
   await check('email', 'Email is not valid').isEmail().run(req);
-  await check('password', 'Password must be at least 8 characters long').isLength({ min: 8 }).run(req);
+  await check('password', 'Password must be at least 8 characters long')
+    .isLength({ min: 8 })
+    .run(req);
   await body('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
   const errors = validationResult(req);
 
-  const {
-    email, password,
-  } = req.body;
+  const { email, password } = req.body;
   try {
     if (!errors.isEmpty()) {
       const message = errors['errors'][0].msg;
       throw new Error(message);
     }
-    let user = await User.findOne({ where: { email } }) as IUser;
+    let user = (await User.findOne({ where: { email } })) as IUser;
     // check to see if theres already a user with that email
     if (user) {
       throw new Error('Email Exists');
@@ -263,16 +267,16 @@ app.post('/submitUserAnswers', async (req: Request, res: Response) => {
     if (elementQuestion.answerType === AnswerType.SC) {
       const numAnswers = elementQuestion.answerOptionsList.length;
       const answerPosition = elementQuestion.answerOptionsList.indexOf(
-        element.answerList[0],
+        element.answerList[0]
       );
       questionScore = 1 - answerPosition / numAnswers;
-      answerScores[elementQuestion.category]
-        += questionScore * elementQuestion.weight;
+      answerScores[elementQuestion.category] +=
+        questionScore * elementQuestion.weight;
     } else if (elementQuestion.answerType === AnswerType.MC) {
       const numAnswers = elementQuestion.answerOptionsList.length;
       questionScore = element.answerList.length / numAnswers;
-      answerScores[elementQuestion.category]
-        += questionScore * elementQuestion.weight;
+      answerScores[elementQuestion.category] +=
+        questionScore * elementQuestion.weight;
     }
   });
 
@@ -367,7 +371,7 @@ app.post('/updateQuestionVisibility', async (req: Request, res: Response) => {
       where: {
         questionId: req.body.questionID,
       },
-    },
+    }
   );
   res.status(200);
 });
@@ -386,16 +390,16 @@ app.post('/updateIndustryAverages', async (req: Request, res: Response) => {
     await IndustryAverage.update(
       {
         score:
-          (element.score * element.entries
-            + req.body.scores[element.category])
-          / (element.entries + 1),
+          (element.score * element.entries +
+            req.body.scores[element.category]) /
+          (element.entries + 1),
         entries: element.entries + 1,
       },
       {
         where: {
           industryAverageID: element.industryAverageID,
         },
-      },
+      }
     );
   });
 
