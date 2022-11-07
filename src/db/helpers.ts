@@ -186,7 +186,6 @@ async function initDatabase() {
         'It is split evenly',
         'It is split between reporting and analysis',
         'It is focused on reporting',
-        '',
       ],
       weight: 1,
     },
@@ -284,6 +283,7 @@ async function initDatabase() {
   ]);
 
   await Answer.create({
+    userAnswerID: 1 + ' ' + 1,
     questionID: 1,
     userID: 1,
     answerList: ['yes'],
@@ -326,11 +326,6 @@ async function initDatabase() {
       entries: 0,
     },
     {
-      category: Category.CULTURE,
-      score: 0,
-      entries: 0,
-    },
-    {
       category: Category.PEOPLE,
       score: 0,
       entries: 0,
@@ -343,10 +338,10 @@ async function initDatabase() {
   ]);
 
   await UserResult.create({
+    userResultID: 1 + ' ' + Category.DATA_AND_ML,
     userID: 1,
     score: 1,
     category: Category.DATA_AND_ML,
-    timestamp: 30,
   });
 }
 

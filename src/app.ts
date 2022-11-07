@@ -236,59 +236,68 @@ app.get('/getUserAnswers', async (req: Request, res: Response) => {
 });
 
 app.post('/submitUserAnswers', async (req: Request, res: Response) => {
-  const userAnswers = req.body.userAnswers;
+  const userAnswers = req.body.data.userAnswers;
   const user = req.user['userID'];
-  const timestamp = Date.now();
-  const answerScores = {
-    DATABASE: 0,
-    DATA_ANALYTICS: 0,
+  let answerScores = {
+    FRONTEND: 0,
+    BACKEND: 0,
+    NETWORKING: 0,
+    DATA_AND_ML: 0,
+    PROCESSES: 0,
+    INFRASTRUCTURE_FIT: 0,
     SECURITY: 0,
-    CULTURE: 0,
     PEOPLE: 0,
     TOOLS: 0,
   };
 
-  await userAnswers.map(async (element: any) => {
+  for (let questionID of Object.keys(userAnswers)) {
+    const answerList = userAnswers[questionID];
+
     // create UserAnswer entry for each question's answer
     // this means that we have a user's entries for each question saved
     await UserAnswer.upsert({
+      userAnswerID: user + ' ' + questionID,
       userID: user,
-      questionID: element.questionID,
-      answerList: element.answerList,
+      questionID: questionID,
+      answerList: answerList,
     });
 
     // need to give each answer a score
     const elementQuestion = await Question.findOne({
       where: {
-        questionID: element.questionID,
+        questionID: questionID,
       },
     });
     let questionScore;
+
     if (elementQuestion.answerType === AnswerType.SC) {
       const numAnswers = elementQuestion.answerOptionsList.length;
       const answerPosition = elementQuestion.answerOptionsList.indexOf(
-        element.answerList[0]
+        answerList[0]
       );
       questionScore = 1 - answerPosition / numAnswers;
       answerScores[elementQuestion.category] +=
         questionScore * elementQuestion.weight;
     } else if (elementQuestion.answerType === AnswerType.MC) {
       const numAnswers = elementQuestion.answerOptionsList.length;
-      questionScore = element.answerList.length / numAnswers;
+      questionScore = answerList.length / numAnswers;
       answerScores[elementQuestion.category] +=
         questionScore * elementQuestion.weight;
     }
-  });
+  }
 
   // need to give each category a score
   const visibleQuestions = (await Question.findAll({
     where: { visible: true },
   })) as IQuestion[];
-  const totalScoresPossible = {
-    DATABASE: 0,
-    DATA_ANALYTICS: 0,
+  let totalScoresPossible = {
+    FRONTEND: 0,
+    BACKEND: 0,
+    NETWORKING: 0,
+    DATA_AND_ML: 0,
+    PROCESSES: 0,
+    INFRASTRUCTURE_FIT: 0,
     SECURITY: 0,
-    CULTURE: 0,
     PEOPLE: 0,
     TOOLS: 0,
   };
@@ -301,10 +310,10 @@ app.post('/submitUserAnswers', async (req: Request, res: Response) => {
   Object.keys(totalScoresPossible).forEach(async (key) => {
     finalScores.push(new FS(key, answerScores[key] / totalScoresPossible[key]));
     await UserResult.create({
+      userResultID: user + ' ' + key,
       userID: user,
       category: key,
       score: answerScores[key] / totalScoresPossible[key],
-      timestamp,
     });
   });
 
@@ -326,7 +335,7 @@ app.get('/getUserScores', async (req: Request, res: Response) => {
   // find results at that timestamp
   const historyOfUserResults = (await UserResult.findAll({
     where: {
-      userID: req.query.userId,
+      userID: req.user['userID'],
     },
   })) as IUserResult[];
   res.status(200).json(historyOfUserResults);

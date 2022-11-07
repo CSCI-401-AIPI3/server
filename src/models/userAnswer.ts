@@ -22,9 +22,9 @@ const UserAnswerFunction = function (
     {
       userAnswerID: {
         allowNull: false,
-        autoIncrement: true,
+        autoIncrement: false,
         primaryKey: true,
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
       },
       questionID: {
         allowNull: false,

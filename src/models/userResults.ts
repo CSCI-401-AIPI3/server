@@ -10,7 +10,7 @@ export interface IUserResult {
 
 const UserResultFunction = function (
   sequelize: Sequelize,
-  DataTypes: any,
+  DataTypes: any
 ): any {
   class UserResult extends Model implements IUserResult {
     declare userID: number;
@@ -25,9 +25,9 @@ const UserResultFunction = function (
     {
       userResultID: {
         allowNull: false,
-        autoIncrement: true,
+        autoIncrement: false,
         primaryKey: true,
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
       },
       userID: {
         allowNull: false,
@@ -35,23 +35,18 @@ const UserResultFunction = function (
       },
       category: {
         allowNull: false,
-        primaryKey: true,
         type: DataTypes.STRING,
       },
       score: {
         allowNull: false,
         type: DataTypes.DOUBLE,
       },
-      timestamp: {
-        allowNull: false,
-        type: DataTypes.INTEGER,
-      },
     },
     {
       sequelize,
       modelName: 'UserResult',
       timestamps: true,
-    },
+    }
   );
   return UserResult;
 };
