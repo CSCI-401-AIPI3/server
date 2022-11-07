@@ -10,8 +10,12 @@ export enum TechMaturity {
 }
 
 export enum Category {
-  DATABASE = 'DATABASE',
-  DATA_ANALYTICS = 'DATA_ANALYTICS',
+  FRONTEND = 'FRONTEND',
+  BACKEND = 'BACKEND',
+  NETWORKING = 'NETWORKING',
+  DATA_AND_ML = 'DATA_AND_ML',
+  PROCESSES = 'PROCESSES',
+  INFRASTRUCTURE_FIT = 'INFRASTRUCTURE_FIT',
   SECURITY = 'SECURITY',
   CULTURE = 'CULTURE',
   PEOPLE = 'PEOPLE',
@@ -20,6 +24,5 @@ export enum Category {
 
 export enum AnswerType {
   MC = 'MC',
-  FR = 'FR',
   SC = 'SC',
 }

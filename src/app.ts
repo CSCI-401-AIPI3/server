@@ -229,7 +229,7 @@ app.get('/questions', async (req: Request, res: Response) => {
 app.get('/getUserAnswers', async (req: Request, res: Response) => {
   const answers = (await UserAnswer.findAll({
     where: {
-      userID: req.query.userID,
+      userID: req.user['userID'],
     },
   })) as IUserAnswer[];
   res.status(200).json(answers);
@@ -237,7 +237,7 @@ app.get('/getUserAnswers', async (req: Request, res: Response) => {
 
 app.post('/submitUserAnswers', async (req: Request, res: Response) => {
   const userAnswers = req.body.userAnswers;
-  const user = req.body.userId;
+  const user = req.user['userID'];
   const timestamp = Date.now();
   const answerScores = {
     DATABASE: 0,

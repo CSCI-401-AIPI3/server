@@ -8,7 +8,7 @@ export interface IUserAnswer {
 
 const UserAnswerFunction = function (
   sequelize: Sequelize,
-  DataTypes: any,
+  DataTypes: any
 ): any {
   class UserAnswer extends Model implements IUserAnswer {
     declare questionID: number;
@@ -32,7 +32,6 @@ const UserAnswerFunction = function (
       },
       userID: {
         allowNull: false,
-        primaryKey: true,
         type: DataTypes.INTEGER,
       },
       answerList: {
@@ -45,7 +44,7 @@ const UserAnswerFunction = function (
       sequelize,
       modelName: 'UserAnswer',
       timestamps: true,
-    },
+    }
   );
   return UserAnswer;
 };

@@ -23,7 +23,7 @@ const QuestionFunction = function (sequelize: Sequelize, DataTypes: any): any {
   }
   Question.init(
     {
-      userID: {
+      questionID: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
