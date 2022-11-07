@@ -237,6 +237,7 @@ app.get('/getUserAnswers', async (req: Request, res: Response) => {
 
 app.post('/submitUserAnswers', async (req: Request, res: Response) => {
   const userAnswers = req.body.data.userAnswers;
+  const submitTimestamp = Date.now();
   const user = req.user['userID'];
   let answerScores = {
     FRONTEND: 0,
@@ -310,10 +311,10 @@ app.post('/submitUserAnswers', async (req: Request, res: Response) => {
   Object.keys(totalScoresPossible).forEach(async (key) => {
     finalScores.push(new FS(key, answerScores[key] / totalScoresPossible[key]));
     await UserResult.create({
-      userResultID: user + ' ' + key,
       userID: user,
       category: key,
       score: answerScores[key] / totalScoresPossible[key],
+      timestamp: submitTimestamp,
     });
   });
 

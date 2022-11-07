@@ -338,10 +338,10 @@ async function initDatabase() {
   ]);
 
   await UserResult.create({
-    userResultID: 1 + ' ' + Category.DATA_AND_ML,
     userID: 1,
     score: 1,
     category: Category.DATA_AND_ML,
+    timestamp: Date.now(),
   });
 }
 

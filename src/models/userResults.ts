@@ -25,9 +25,9 @@ const UserResultFunction = function (
     {
       userResultID: {
         allowNull: false,
-        autoIncrement: false,
+        autoIncrement: true,
         primaryKey: true,
-        type: DataTypes.STRING,
+        type: DataTypes.INTEGER,
       },
       userID: {
         allowNull: false,
@@ -40,6 +40,10 @@ const UserResultFunction = function (
       score: {
         allowNull: false,
         type: DataTypes.DOUBLE,
+      },
+      timestamp: {
+        allowNull: false,
+        type: DataTypes.BIGINT,
       },
     },
     {
