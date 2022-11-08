@@ -4,15 +4,16 @@ import { TechMaturity } from '../../utils/enum';
 const bcrypt = require('bcrypt-nodejs');
 
 export interface IUser {
-    userID: number;
-    name?: string;
-    company?: string;
-    email: string;
-    password: string;
-    technicalMaturity?: TechMaturity;
-    pointOfContact?: string;
-    validPassword: any;
-    generateHash: any;
+  userID: number;
+  name?: string;
+  company?: string;
+  email: string;
+  password: string;
+  technicalMaturity?: TechMaturity;
+  pointOfContact?: string;
+  requestsHelp?: boolean;
+  validPassword: any;
+  generateHash: any;
 }
 
 const UserFunction = function (sequelize: Sequelize, DataTypes: any): any {
@@ -59,12 +60,15 @@ const UserFunction = function (sequelize: Sequelize, DataTypes: any): any {
       pointOfContact: {
         type: DataTypes.STRING,
       },
+      requestsHelp: {
+        type: DataTypes.BOOLEAN,
+      },
     },
     {
       sequelize,
       modelName: 'User',
       timestamps: true,
-    },
+    }
   );
   return User;
 };

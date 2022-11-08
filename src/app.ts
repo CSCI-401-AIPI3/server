@@ -181,8 +181,11 @@ app.post('/register', async (req: Request, res: Response) => {
     }
     // insert a new user!!! Registration is DONE
     user = await User.create({
-      email,
+      email: email,
       password,
+      technicalMaturity: TechMaturity.INITIAL,
+      pointOfContact: '',
+      requestsHelp: false,
     });
     // Log In !
     req.logIn(user, async (err) => {
@@ -349,6 +352,7 @@ app.post('/insertUser', async (req: Request, res: Response) => {
     email: req.body.email,
     technicalMaturity: TechMaturity.INITIAL,
     pointOfContact: '',
+    requestsHelp: false,
   });
   res.status(200);
 });
@@ -360,6 +364,15 @@ app.get('/getUncontactedUsers', async (req: Request, res: Response) => {
     },
   });
   res.status(200).json(uncontactedUsers);
+});
+
+app.get('/getUserRequestsHelp', async (req: Request, res: Response) => {
+  const users = await User.findAll({
+    where: {
+      requestsHelp: true,
+    },
+  });
+  res.status(200).json(users);
 });
 
 app.post('/insertQuestion', async (req: Request, res: Response) => {
@@ -417,6 +430,18 @@ app.post('/updateIndustryAverages', async (req: Request, res: Response) => {
     );
   });
 
+  res.status(200);
+});
+
+app.post('/requestHelp', async (req: Request, res: Response) => {
+  await User.update(
+    { requestsHelp: true },
+    {
+      where: {
+        userID: req.user['userID'],
+      },
+    }
+  );
   res.status(200);
 });
 

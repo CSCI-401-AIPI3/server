@@ -35,6 +35,7 @@ async function initDatabase() {
     password: '$2a$08$5nZvEem1PqgiT1xW6sk2uu7IhT1IbbgArxk0PSjeFI7FOmFL.oV2S',
     technicalMaturity: TechMaturity.INITIAL,
     pointOfContact: 'adam',
+    requestsHelp: false,
   });
 
   await Question.bulkCreate([
