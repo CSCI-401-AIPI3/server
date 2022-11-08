@@ -393,15 +393,19 @@ app.get('/getIndustryAverages', async (req: Request, res: Response) => {
 
 app.post('/updateIndustryAverages', async (req: Request, res: Response) => {
   const averages = (await IndustryAverage.findAll({})) as IIndustryAverage[];
+  const categoryScores = req.body.data;
 
-  // user is passing in object of structure {category: score}
-  // --> access incoming score for category as scores[category]
+  // user is passing in object of structure {category: string, score: number}
   averages.forEach(async (element) => {
+    const userCategoryScore = categoryScores.find(
+      (el: { category: string; score: number }) =>
+        el.category === element.category
+    );
+
     await IndustryAverage.update(
       {
         score:
-          (element.score * element.entries +
-            req.body.scores[element.category]) /
+          (element.score * element.entries + userCategoryScore.score) /
           (element.entries + 1),
         entries: element.entries + 1,
       },
