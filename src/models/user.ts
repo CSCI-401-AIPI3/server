@@ -1,8 +1,6 @@
 import { Sequelize, Model } from 'sequelize';
 import { TechMaturity } from '../../utils/enum';
-
-const bcrypt = require('bcrypt-nodejs');
-
+import bcrypt from 'bcrypt-nodejs';
 export interface IUser {
   userID: number;
   name?: string;
@@ -12,6 +10,7 @@ export interface IUser {
   technicalMaturity?: TechMaturity;
   pointOfContact?: string;
   requestsHelp?: boolean;
+  role?: string;
   validPassword: any;
   generateHash: any;
 }
@@ -29,7 +28,7 @@ const UserFunction = function (sequelize: Sequelize, DataTypes: any): any {
     }
 
     generateHash(password: string) {
-      return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+      return bcrypt.hashSync(password, bcrypt.genSaltSync(8));
     }
   }
   User.init(
@@ -62,6 +61,9 @@ const UserFunction = function (sequelize: Sequelize, DataTypes: any): any {
       },
       requestsHelp: {
         type: DataTypes.BOOLEAN,
+      },
+      role: {
+        type: DataTypes.STRING,
       },
     },
     {

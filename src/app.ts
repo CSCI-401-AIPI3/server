@@ -7,7 +7,7 @@ import morgan from 'morgan';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import { DataTypes } from 'sequelize';
+import { DataTypes, Op } from 'sequelize';
 import cors from 'cors';
 import { body, check, validationResult } from 'express-validator';
 import { IQuestion, QuestionFunction } from './models/questions';
@@ -20,6 +20,7 @@ import { IUserAnswer, UserAnswerFunction } from './models/userAnswer';
 import { IUserResult, UserResultFunction } from './models/userResults';
 import sequelize from './db/db';
 import { TechMaturity, AnswerType } from '../utils/enum';
+import bcrypt from 'bcrypt-nodejs';
 
 const Question = QuestionFunction(sequelize, DataTypes);
 const IndustryAverage = IndustryAverageFunction(sequelize, DataTypes);
@@ -182,10 +183,11 @@ app.post('/register', async (req: Request, res: Response) => {
     // insert a new user!!! Registration is DONE
     user = await User.create({
       email: email,
-      password,
+      password: bcrypt.hashSync(password, bcrypt.genSaltSync(8)),
       technicalMaturity: TechMaturity.INITIAL,
       pointOfContact: '',
       requestsHelp: false,
+      role: 'user',
     });
     // Log In !
     req.logIn(user, async (err) => {
@@ -215,7 +217,19 @@ const isAuthenticated = (req: Request, res: Response, next: any) => {
   });
 };
 
+const isAdmin = (req: Request, res: Response, next: any) => {
+  if (req.user && req.user['role'] === 'admin') {
+    return next();
+  }
+  return res.status(401).json({
+    success: false,
+    message: 'User not an administrator',
+  });
+};
+
 app.use(isAuthenticated);
+
+app.all('/admin/*', isAdmin);
 
 app.get('/', (req: Request, res: Response) => {
   res.status(200).json({
@@ -357,16 +371,17 @@ app.post('/insertUser', async (req: Request, res: Response) => {
   res.status(200);
 });
 
-app.get('/getUncontactedUsers', async (req: Request, res: Response) => {
+app.get('/admin/getUncontactedUsers', async (req: Request, res: Response) => {
   const uncontactedUsers = await User.findAll({
     where: {
       pointOfContact: '',
+      role: { [Op.not]: 'admin' },
     },
   });
   res.status(200).json(uncontactedUsers);
 });
 
-app.get('/getUserRequestsHelp', async (req: Request, res: Response) => {
+app.get('/admin/getUserRequestsHelp', async (req: Request, res: Response) => {
   const users = await User.findAll({
     where: {
       requestsHelp: true,
@@ -375,7 +390,7 @@ app.get('/getUserRequestsHelp', async (req: Request, res: Response) => {
   res.status(200).json(users);
 });
 
-app.post('/insertQuestion', async (req: Request, res: Response) => {
+app.post('/admin/insertQuestion', async (req: Request, res: Response) => {
   await Question.create({
     category: req.body.category,
     questionString: req.body.questionString,
@@ -387,17 +402,20 @@ app.post('/insertQuestion', async (req: Request, res: Response) => {
   res.status(200);
 });
 
-app.post('/updateQuestionVisibility', async (req: Request, res: Response) => {
-  await Question.update(
-    { visibility: req.body.visibility },
-    {
-      where: {
-        questionId: req.body.questionID,
-      },
-    }
-  );
-  res.status(200);
-});
+app.post(
+  '/admin/updateQuestionVisibility',
+  async (req: Request, res: Response) => {
+    await Question.update(
+      { visibility: req.body.visibility },
+      {
+        where: {
+          questionId: req.body.questionID,
+        },
+      }
+    );
+    res.status(200);
+  }
+);
 
 app.get('/getIndustryAverages', async (req: Request, res: Response) => {
   const averages = (await IndustryAverage.findAll({})) as IIndustryAverage[];

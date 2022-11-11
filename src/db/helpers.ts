@@ -8,6 +8,7 @@ import { QuestionFunction } from '../../src/models/questions';
 import { UserAnswerFunction } from '../../src/models/userAnswer';
 import { IndustryAverageFunction } from '../../src/models/industryAverages';
 import { UserResultFunction } from '../../src/models/userResults';
+import bcrypt from 'bcrypt-nodejs';
 
 const User = UserFunction(sequelize, DataTypes);
 const Question = QuestionFunction(sequelize, DataTypes);
@@ -15,7 +16,7 @@ const Answer = UserAnswerFunction(sequelize, DataTypes);
 const IndustryAverage = IndustryAverageFunction(sequelize, DataTypes);
 const UserResult = UserResultFunction(sequelize, DataTypes);
 
-const email = 'rzhang139@gmail.com';
+const email = 'kimrichards@aipi3.com';
 
 async function clearDatabase() {
   await User.destroy({ where: {} });
@@ -29,13 +30,14 @@ async function initDatabase() {
   await clearDatabase();
 
   await User.create({
-    name: 'richard',
-    company: 'Amazon',
-    email,
-    password: '$2a$08$5nZvEem1PqgiT1xW6sk2uu7IhT1IbbgArxk0PSjeFI7FOmFL.oV2S',
+    name: 'Kim Richards',
+    company: 'AIPI3',
+    email: email,
+    password: bcrypt.hashSync('basic_password', bcrypt.genSaltSync(8)),
     technicalMaturity: TechMaturity.INITIAL,
-    pointOfContact: 'adam',
+    pointOfContact: '',
     requestsHelp: false,
+    role: 'admin',
   });
 
   await Question.bulkCreate([
