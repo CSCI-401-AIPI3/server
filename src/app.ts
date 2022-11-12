@@ -120,7 +120,6 @@ passport.deserializeUser((user: IUser, done) => {
  * @params email, password
  */
 app.post('/login', async (req: Request, res: Response, next: any) => {
-  // const { email } = req.body;
   await check('email', 'Email is not valid').isEmail().run(req);
   await check('password', 'Password cannot be blank')
     .isLength({ min: 1 })

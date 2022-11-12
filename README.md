@@ -18,6 +18,31 @@ docker-compose up
 ```
 
 Create an .env file with the necessary variables.
+Sample variables:
+
+```
+PORT=3008
+NODE_ENV=dev
+TEST_PORT=5500
+POSTGRES_HOST=localhost
+POSTGRES_DB="csci401"
+POSTGRES_TEST_DB="csci401_test"
+POSTGRES_PORT=5432
+POSTGRES_DIALECT=postgres
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=password
+PGADMIN_DEFAULT_EMAIL=admin@csci401.com
+PGADMIN_DEFAULT_PASSWORD=password
+```
+
+## Troubleshooting
+
+If the server outputs something like `Column {userID} is not found in database {Users}` (i.e. some table
+architecture error which you think should not be the case based on the code you've written), try deleting
+the `data` and `dist` folders in your local repository. These folders are generated when running docker
+and will be preserved across different runs, meaning that old code might not be updated if you do not
+delete these folders. NOTE that this operation does _not_ need to be done every time you run `docker-compose up`
+-- only when you make new edits to, say, the database table/type models.
 
 ## Database Population Through Running
 
